@@ -1,0 +1,58 @@
+.input-form {
+    
+}
+.options-prompts {
+    /* text-align: center; */
+  }
+  
+  .prompt-header{
+    text-align: left;
+  }
+  .prompts-input {
+    font-size: larger;
+  }
+  
+  .input-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .prompt-input-label {
+    margin-bottom: 5px;
+  }
+  .prompt-input {
+    height: 35px;
+    width: 500px;
+    border-radius: 10px;
+    padding-left: 15px;
+    margin-bottom: 25px;
+    border: 1px solid rgb(125, 255, 128);
+    background-color: rgb(245, 255, 242);
+  }
+  
+  /* button styles */
+  .button-container {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+  }
+  .button-main {
+    width: 90px;
+    height: 35px;
+    border-radius: 25px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border 0.3s ease;
+    font-weight: bold;
+  }
+  
+  .submit {
+    background-color: rgb(125, 255, 128);
+  }
+  .clear {
+    background-color: rgb(255, 109, 109);
+  }
+  
+  .button-main:hover {
+    border: 2px solid #3498db;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
+  }

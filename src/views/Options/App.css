@@ -1,0 +1,167 @@
+body {
+  /* Define global body styles if needed. */
+  position: relative;
+  color: #f4f4f4;
+  margin: 0;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: left;
+  width: 1000px;
+  padding: 50px 100px;
+  overflow-y: scroll;
+  height: fit-content;
+}
+
+.options-header {
+  min-height: 100px;
+  font-size: x-large;
+}
+
+.theme-form {
+  display: flex;
+  /* align-items: center; */
+}
+
+/* Light Theme Styles */
+.options.light {
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+.options-header.light {
+  background-color: #282c34;
+  color: #333;
+}
+
+.section-title.light {
+  color: #333;
+}
+
+/* Dark Theme Styles */
+.options.dark {
+  background-image: linear-gradient(
+    to right top,
+    #425572,
+    #424b61,
+    #404351,
+    #3a3a42,
+    #333333
+  );
+}
+
+.options-header.dark {
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+.section-title.dark {
+  color: #f4f4f4;
+}
+
+h3 {
+  margin-bottom: 15px;
+}
+h2 {
+  margin-bottom: 15px;
+}
+.category-select-h3 {
+  margin-bottom: 15px;
+}
+.category-select-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 50px;
+  box-shadow: 1px 1px 9px rgba(52, 152, 219, 0.7);
+  border-radius: 15px;
+  font-size: medium;
+}
+
+.filter-item {
+  cursor: pointer;
+  padding: 10px;
+  border: 1px solid;
+  margin: 10px;
+  transition: transform 0.2s ease-in-out;
+}
+.filter-item:hover {
+  transform: translateY(-3px);
+}
+.filter-item.active {
+  border: 1px solid rgb(255, 109, 109);
+  color: rgb(255, 109, 109);
+}
+
+/* Other Theme Styles */
+
+.prompts-user-set {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: left;
+  padding: 15px 50px;
+  border-radius: 15px;
+  box-shadow: 1px 1px 9px rgba(52, 152, 219, 0.7);
+  margin-top: 25px;
+}
+/* label? */
+/* .options-prompts {
+  text-align: center;
+}
+
+.prompts-input {
+  font-size: larger;
+}
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.prompt-input-label {
+  margin-bottom: 5px;
+}
+.prompt-input {
+  height: 35px;
+  width: 500px;
+  border-radius: 10px;
+  padding-left: 15px;
+  margin-bottom: 25px;
+  border: 1px solid rgb(125, 255, 128);
+  background-color: rgb(245, 255, 242);
+}
+
+/* button styles */
+/* .button-container {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+}
+.button-main {
+  width: 90px;
+  height: 35px;
+  border-radius: 25px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border 0.3s ease;
+  font-weight: bold;
+}
+
+.submit {
+  background-color: rgb(125, 255, 128);
+}
+.clear {
+  background-color: rgb(255, 109, 109);
+}
+
+.button-main:hover {
+  border: 2px solid #3498db;
+  box-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
+}  */

@@ -1,0 +1,29 @@
+{
+    "manifest_version": 3,
+    "name": "GP_Click_Search",
+    "version": "1.0.0",
+    "description": "A Chrome extension called Click Search that uses the Youtube API to make ChatGPT queries.",
+    "background": {
+      "service_worker": "background.js",
+      "type": "module"
+    },
+      "icons": {
+        "192": "logo192.png",
+        "193": "logo193.png"
+      },
+      "action": {
+        "default_icon": {
+          "192": "logo192.png"
+        },
+        "secondary_icon": {
+          "193": "logo193.png"
+        },
+        "default_title": "Extension - Click Search",
+        "default_popup": "index.html"
+      },
+      "options_ui": {
+        "page": "options.html"
+      },
+      "host_permissions": ["https://www.googleapis.com/*"],
+    "permissions": ["storage", "scripting", "activeTab", "webNavigation"]
+  }
