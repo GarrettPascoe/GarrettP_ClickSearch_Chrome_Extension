@@ -10,24 +10,50 @@
 // //Update Pop Up fields with the results of the query (possibly offer a search bar if 
 // //the app determines that an error occured)
 
+/*
+
+function storageOnChanged() {
+  console.log("first listener changes: " + changes); // {key : { newValue: 'value' }}
+}
+chrome.storage.session.onChanged.addListener(storageOnChanged);
+
+chrome.storage.onChanged.addListener(function(changes, namespace) {
+  if (["key"] in changes) {
+      console.log("Old value: " + changes.key.oldValue);
+      console.log("New value: " + changes.key.newValue);
+  }
+});
+
+*/
+
+// Listener that triggers on history change in Chrome
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
   console.log("History has changed");
-  if (details.url) {
-    const url = new URL(details.url);
-    const videoId = url.searchParams.get("v");
+
+  chrome.storage.local.get(["key"], (result) => {  // Get the api KEY for YoutubeData api
+    const KEY = result.key;
+  if (KEY) {  // if KEY isn't null
+  console.log("KEY: " + KEY);
+  if (details.url) {  // if details.url exists
+    const url = new URL(details.url);  // set url datatype variable to match details
+    const videoId = url.searchParams.get("v");  // get videoId from url
     if (videoId) {
       console.log("Video ID has changed to: " + videoId);
       chrome.storage.local.set({ videoId: videoId }).then(() => {
         console.log("Video ID has been stored.");
-      });
-      const KEY = chrome.storage.local.get(["api"])
-      .then(console.log("api has been set to: " + KEY))
-      .then(fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet&key=${KEY}`))
-        .then(response => response.json())
+      });  // Copy new videoId to the storage variable
+
+
+
+      fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet&key=${KEY}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
         .then(data => {
-          chrome.storage.local.set({ "apiResponse": data.items }).then(() => {
-          console.log("Response has been stored.", data.items);
-          });
+          chrome.storage.local.set({ apiResponse: data.items })
         })
 
         .then(keyTag => { 
@@ -37,12 +63,13 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
             chrome.storage.local.set({ "keywords": keyTag});
           })
         })
+
         .catch(error => {
           console.error("Error fetching data:", error);
         });
     }
   }
-});
+}});})
 
 // add video title to parameters
 function tagAlgorithm(tagArray, title, channel, categoryId)

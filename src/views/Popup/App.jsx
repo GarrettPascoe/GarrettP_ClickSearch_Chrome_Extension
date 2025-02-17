@@ -61,11 +61,23 @@ function App() {
 
   const [loading, isLoading] = useState(true);
 
+  const [message, setMessage] = useState('');
+
+  chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+
+  })
+
+  // Store API KEY in chrome storage on mount to be accessed by the etension service worker
+  useEffect(() => {
+    const keydata = import.meta.env.VITE_YOUTUBE_API_KEY;
+
+
+    chrome.storage.local.set({ "key": keydata });
+  }, []);
+
   useEffect(() => {
     setInterval(() => {
       (async () => {
-        chrome.storage.local.set({ "api": import.meta.env.VITE_YOUTUBE_API_KEY })
-        console.log("Sent key:", import.meta.env.VITE_YOUTUBE_API_KEY);
         // Retrieve videoId from chrome.storage.local
         chrome.storage.local.get(["videoId"], (result) => {
           const videoIdTemp = result.videoId;
