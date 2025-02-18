@@ -10,21 +10,12 @@
 // //Update Pop Up fields with the results of the query (possibly offer a search bar if 
 // //the app determines that an error occured)
 
-/*
 
-function storageOnChanged() {
-  console.log("first listener changes: " + changes); // {key : { newValue: 'value' }}
-}
-chrome.storage.session.onChanged.addListener(storageOnChanged);
 
-chrome.storage.onChanged.addListener(function(changes, namespace) {
-  if (["key"] in changes) {
-      console.log("Old value: " + changes.key.oldValue);
-      console.log("New value: " + changes.key.newValue);
-  }
-});
+//  Current things that need improvement
+//  Get API key before first query is made
+//  Only update popup use state when videoId is changed
 
-*/
 
 // Listener that triggers on history change in Chrome
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
@@ -39,7 +30,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
     const videoId = url.searchParams.get("v");  // get videoId from url
     if (videoId) {
       console.log("Video ID has changed to: " + videoId);
-      chrome.storage.local.set({ videoId: videoId }).then(() => {
+      chrome.storage.local.set({ "videoId": videoId }).then(() => {
         console.log("Video ID has been stored.");
       });  // Copy new videoId to the storage variable
 
@@ -53,7 +44,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
           return response.json();
         })
         .then(data => {
-          chrome.storage.local.set({ apiResponse: data.items })
+          chrome.storage.local.set({ "apiResponse": data.items })
         })
 
         .then(keyTag => { 
@@ -61,6 +52,8 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
             keyTag = tagAlgorithm(result.apiResponse[0].snippet.tags, result.apiResponse[0].snippet.title, result.apiResponse[0].snippet.channelTitle, result.apiResponse[0].snippet.categoryId);         
             console.log("Response from tagAlgorithm", keyTag);
             chrome.storage.local.set({ "keywords": keyTag});
+            chrome.storage.local.set({ "videoTitle": result.apiResponse[0].snippet.title})
+            chrome.storage.local.set({ "needUpdate": true})
           })
         })
 

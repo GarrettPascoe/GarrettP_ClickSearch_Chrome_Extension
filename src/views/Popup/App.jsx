@@ -10,9 +10,7 @@ import 'swiper/css/pagination';
 
 function App() {
 
-  const [videos, setVideos] = useState([]);
   const [videoId, setVideoId] = useState();
-  const [videoData, setVideoData] = useState();
   const [videoTitle, setVideoTitle] = useState();
   const [videoCategory, setVideoCategory] = useState();
   const [keywords, setKeywords] = useState(['', '', '']);
@@ -61,6 +59,8 @@ function App() {
 
   const [loading, isLoading] = useState(true);
 
+  const [update, needsUpdate] = useState(true);
+
   const [message, setMessage] = useState('');
 
   chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
@@ -78,146 +78,194 @@ function App() {
   useEffect(() => {
     setInterval(() => {
       (async () => {
-        // Retrieve videoId from chrome.storage.local
-        chrome.storage.local.get(["videoId"], (result) => {
-          const videoIdTemp = result.videoId;
-          console.log("Retrieved video ID:", videoIdTemp);
-    
-          // Set videoId state
-          setVideoID(videoIdTemp, () => {
-            console.log("Updated videoId state:", videoId);
-          });
-        });
 
-        // Retrieve videoCategory from chrome.storage.local
-        chrome.storage.local.get(["videoCategory"], (result) => {
-            const category = result.videoCategory;
-            console.log("Retrieved category:", category);
+        // Check if an update is needed
+        checkUpdate();
 
-            // Set videoCategory state
-            setVideoCategory(category, () => {
-              console.log("Updated videoCategory state:", videoCategory);
-            });
-          });
+        if (update == true)
+        {
+          // Retrieve videoId from chrome.storage.local
+          getVideoId();
 
-              // Listen for messages from the background script
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (message.data) {
-          // Set videoData state when a message is received
+          // Retrieve videoCategory from chrome.storage.local
+          getVideoCategory();
 
-            // Set videoData state
-            setVideoData(message.data, () => {
-              console.log("Updated videoData state:", videoData);
-            }),
+          // Retrieve videoTitle from chrome.storage.local
+          getVideoTitle();
 
-            // Set videoTitle state
-            setVideoTitle(message.data.items[0].snippet.title, () => {
-              console.log("Updated videoTitle state:", videoTitle);
-            })
-        } else if(message.keyTag) {
-          // Set keywords state
-          setVideoTitle(message.keyTag, () => {
-            console.log("Updated keywords state:", keywords);
-          })
+          // Listener for messages from the background script was previously here
+        
+          // Retrieve keywords from chrome.storage.local
+          getKeywords();
+
+
+          // Implement type of questions and update Options
+          implementQuestions();
+
+
+          needsUpdate(false);
+        }
+
+      })();
+    }, 5000);
+  });
+  
+
+  const getVideoId = () => {
+
+    // Retrieve videoId from chrome.storage.local
+    chrome.storage.local.get(["videoId"], (result) => {
+      const videoIdTemp = result.videoId;
+      console.log("Retrieved video ID:", videoIdTemp);
+
+      // Set videoId state
+      setVideoID(videoIdTemp, () => {
+        console.log("Updated videoId state:", videoId);
+      });
+    });
+  };
+
+  const getVideoCategory = () => {
+
+    chrome.storage.local.get(["videoCategory"], (result) => {
+      const category = result.videoCategory;
+      console.log("Retrieved category:", category);
+
+      // Set videoCategory state
+      setVideoCategory(category, () => {
+        console.log("Updated videoCategory state:", videoCategory);
+      });
+    });
+  };
+
+
+  const getVideoTitle = () => {
+
+    // Retrieve videoTitle from chrome.storage.local
+    chrome.storage.local.get(["videoTitle"], (result) => {
+      const title = result.videoTitle;
+      console.log("Retrieved title:", title);
+
+      // Set videoTitle state
+      setVideoTitle(title, () => {
+        console.log("Updated videoTitle state:", videoTitle);
+      });
+    });
+  };
+
+  const getKeywords = () => {
+
+    // Retrieve Keywords from chrome.storage.local
+    chrome.storage.local.get(["keywords"], (result) => {
+      const tags = result.keywords;
+      console.log("Retrieved keywords:", tags);
+
+      // Set keyword state
+      setKeywords(tags, () => {
+        console.log("Updated keyword state:", keywords);
+      });
+    });
+  };
+
+
+
+  const checkUpdate = () => {
+    // Retrieve update status from chrome.storage.local
+    chrome.storage.local.get(["needUpdate"], (result) => {
+      const update = result.needUpdate;
+      if (update == true)
+      {
+        console.log("time to update:", update);
+        // Set update to true to allow the hook to progress
+        needsUpdate(update, () => {
+      });
+      }
+    });
+  }
+
+
+  const implementQuestions = async () => {
+
+    if (videoCategory == 'movie') {
+      const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
+      const questions = preferredQuestionsResult.preferredQuestions.movieQuestions;
+      console.log("Retrieved questions:", questions);
+      setUserQuestions(questions, () => {
+        console.log("Updated questions state:", userQuestions);
+        if (storedOpenaiResponse.videoId !== videoId){
+          handleSubmit();
+        }
+        else {
+          setOpenAIResponse(storedOpenaiResponse)
+          isLoading(false);
         }
       });
-  
-      // Retrieve videoData from chrome.storage.local
-      const youtubeResult = await chrome.storage.local.get(["apiResponse"]);
-      const youtubeData = youtubeResult.apiResponse;
-      setVideoData(youtubeData);
-      setVideoTitle(youtubeData[0].snippet.title);
-      const keyTagsResult = await chrome.storage.local.get(["keywords"]);
-      const tags = keyTagsResult.keywords;
-      setKeywords(tags, () => {
-        console.log("Updated keywords state:", keywords);
+    }
+    else if (videoCategory == 'tv series')
+    {
+      const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
+      const questions = preferredQuestionsResult.preferredQuestions.showQuestions;
+      console.log("Retrieved questions:", questions);
+      setUserQuestions(questions, () => {
+        console.log("Updated questions state:", userQuestions);
+        if (storedOpenaiResponse.videoId !== videoId){
+          handleSubmit();
+        }
+        else {
+          setOpenAIResponse(storedOpenaiResponse)
+          isLoading(false);
+        }
       });
-
-
-      // Implement type of questions and update Options
-      if (videoCategory == 'movie') {
-        const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
-        const questions = preferredQuestionsResult.preferredQuestions.movieQuestions;
-        console.log("Retrieved questions:", questions);
-        setUserQuestions(questions, () => {
-          console.log("Updated questions state:", userQuestions);
-          if (storedOpenaiResponse.videoId !== videoId){
-            handleSubmit();
-          }
-          else {
-            setOpenAIResponse(storedOpenaiResponse)
-            isLoading(false);
-          }
-        });
-      }
-      else if (videoCategory == 'tv series')
-      {
-        const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
-        const questions = preferredQuestionsResult.preferredQuestions.showQuestions;
-        console.log("Retrieved questions:", questions);
-        setUserQuestions(questions, () => {
-          console.log("Updated questions state:", userQuestions);
-          if (storedOpenaiResponse.videoId !== videoId){
-            handleSubmit();
-          }
-          else {
-            setOpenAIResponse(storedOpenaiResponse)
-            isLoading(false);
-          }
-        });
-      }
-      else if (videoCategory == 'videoGame')
-      {
-        const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
-        const questions = preferredQuestionsResult.preferredQuestions.videoGameQuestions;
-        console.log("Retrieved questions:", questions);
-        setUserQuestions(questions, () => {
-          console.log("Updated questions state:", userQuestions);
-          if (storedOpenaiResponse.videoId !== videoId){
-            handleSubmit();
-          }
-          else {
-            setOpenAIResponse(storedOpenaiResponse)
-            isLoading(false);
-          }
-        });
-      }
-      else if (videoCategory == 'tech')
-      {
-        const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
-        const questions = preferredQuestionsResult.preferredQuestions.techQuestions;
-        console.log("Retrieved questions:", questions);
-        setUserQuestions(questions, () => {
-          console.log("Updated questions state:", userQuestions);
-          if (storedOpenaiResponse.videoId !== videoId){
-            handleSubmit();
-          }
-          else {
-            setOpenAIResponse(storedOpenaiResponse)
-            isLoading(false);
-          }
-        });
-      }
-      else
-      {
-        const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
-        const questions = preferredQuestionsResult.preferredQuestions.contentCreatorQuestions;
-        console.log("Retrieved questions:", questions);
-        setUserQuestions(questions, () => {
-          console.log("Updated questions state:", userQuestions);
-          if (storedOpenaiResponse.videoId !== videoId){
-            handleSubmit();
-          }
-          else {
-            setOpenAIResponse(storedOpenaiResponse)
-            isLoading(false);
-          }
-        });
-      }
-  })();
-  }, 5000);
-});
-  
+    }
+    else if (videoCategory == 'videoGame')
+    {
+      const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
+      const questions = preferredQuestionsResult.preferredQuestions.videoGameQuestions;
+      console.log("Retrieved questions:", questions);
+      setUserQuestions(questions, () => {
+        console.log("Updated questions state:", userQuestions);
+        if (storedOpenaiResponse.videoId !== videoId){
+          handleSubmit();
+        }
+        else {
+          setOpenAIResponse(storedOpenaiResponse)
+          isLoading(false);
+        }
+      });
+    }
+    else if (videoCategory == 'tech')
+    {
+      const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
+      const questions = preferredQuestionsResult.preferredQuestions.techQuestions;
+      console.log("Retrieved questions:", questions);
+      setUserQuestions(questions, () => {
+        console.log("Updated questions state:", userQuestions);
+        if (storedOpenaiResponse.videoId !== videoId){
+          handleSubmit();
+        }
+        else {
+          setOpenAIResponse(storedOpenaiResponse)
+          isLoading(false);
+        }
+      });
+    }
+    else
+    {
+      const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
+      const questions = preferredQuestionsResult.preferredQuestions.contentCreatorQuestions;
+      console.log("Retrieved questions:", questions);
+      setUserQuestions(questions, () => {
+        console.log("Updated questions state:", userQuestions);
+        if (storedOpenaiResponse.videoId !== videoId){
+          handleSubmit();
+        }
+        else {
+          setOpenAIResponse(storedOpenaiResponse)
+          isLoading(false);
+        }
+      });
+    }
+  }
 
 
 
@@ -228,8 +276,6 @@ function App() {
       window.open(chrome.runtime.getURL("options.html"));
     }
   };
-
-
 
 
   const handleSubmit = async () => {
@@ -258,6 +304,32 @@ function App() {
     console.log(completion)
     isLoading(false);
   };
+
+  /*
+  // Listen for messages from the background script
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.data) {
+    // Set videoData state when a message is received
+
+    // Set videoData state
+    setVideoData(message.data, () => {
+      console.log("Updated videoData state:", videoData);
+    }),
+
+    // Set videoTitle state
+    setVideoTitle(message.data.items[0].snippet.title, () => {
+      console.log("Updated videoTitle state:", videoTitle);
+    })
+  }
+  else if(message.keyTag) {
+  // Set keywords state
+  setVideoTitle(message.keyTag, () => {
+    console.log("Updated keywords state:", keywords);
+  })
+  }
+  });
+  */
+
 
   return (
     <>
