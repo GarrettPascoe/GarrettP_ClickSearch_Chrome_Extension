@@ -10,10 +10,10 @@ import 'swiper/css/pagination';
 
 function App() {
 
-  const [videoId, setVideoId] = useState();
-  const [videoTitle, setVideoTitle] = useState();
-  const [videoCategory, setVideoCategory] = useState();
-  const [keywords, setKeywords] = useState(['', '', '']);
+  const [videoId, setVideoId] = useState(' ');
+  const [videoTitle, setVideoTitle] = useState(' ');
+  const [videoCategory, setVideoCategory] = useState(' ');
+  const [keywords, setKeywords] = useState(['tag1', 'tag2', 'tag3']);
 
   const [openAIResponse, setOpenAIResponse] = useState({ questionOne: null, questionTwo: null, questionThree: null, questionFour: null, questionFive: null,});
   const [userQuestions, setUserQuestions] = useState({
@@ -59,13 +59,7 @@ function App() {
 
   const [loading, isLoading] = useState(true);
 
-  const [update, needsUpdate] = useState(true);
-
-  const [message, setMessage] = useState('');
-
-  chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
-
-  })
+  const [update, needsUpdate] = useState(false);
 
   // Store API KEY in chrome storage on mount to be accessed by the etension service worker
   useEffect(() => {
@@ -75,20 +69,28 @@ function App() {
     chrome.storage.local.set({ "key": keydata });
   }, []);
 
+  // useEffect to check if the video Id needs to be updated
   useEffect(() => {
     setInterval(() => {
-      (async () => {
-
         // Check if an update is needed
         checkUpdate();
+    }, 5000);
+  });
+
+  useEffect(() => {
+      (async () => {
 
         if (update == true)
         {
+          needsUpdate(false);
+          chrome.storage.local.set({ "needUpdate": false });
+
+
           // Retrieve videoId from chrome.storage.local
           getVideoId();
 
           // Retrieve videoCategory from chrome.storage.local
-          getVideoCategory();
+          //getVideoCategory();
 
           // Retrieve videoTitle from chrome.storage.local
           getVideoTitle();
@@ -103,12 +105,10 @@ function App() {
           implementQuestions();
 
 
-          needsUpdate(false);
         }
 
       })();
-    }, 5000);
-  });
+    }, [update]);
   
 
   const getVideoId = () => {
@@ -119,11 +119,18 @@ function App() {
       console.log("Retrieved video ID:", videoIdTemp);
 
       // Set videoId state
-      setVideoID(videoIdTemp, () => {
-        console.log("Updated videoId state:", videoId);
-      });
+      setVideoId(videoIdTemp);
     });
   };
+
+
+
+  // Used to log videoId when the state is changed
+  useEffect(() => {
+    console.log("Updated videoId state:", videoId);
+  }, [videoId]);
+
+
 
   const getVideoCategory = () => {
 
@@ -147,25 +154,58 @@ function App() {
       console.log("Retrieved title:", title);
 
       // Set videoTitle state
-      setVideoTitle(title, () => {
-        console.log("Updated videoTitle state:", videoTitle);
-      });
+      setVideoTitle(title);
     });
   };
 
+
+
+
+  // Used to log videoTitle when the state is changed
+  useEffect(() => {
+    console.log("Updated videoTitle state:", videoTitle);
+  }, [videoTitle]);
+
+
+
+
   const getKeywords = () => {
+
+    // The keywords array retrieved from the service worker contains three keywords and the video category.
+    // The keywords make up the first three variables in the array and the video category is the fourth.
 
     // Retrieve Keywords from chrome.storage.local
     chrome.storage.local.get(["keywords"], (result) => {
       const tags = result.keywords;
-      console.log("Retrieved keywords:", tags);
+
+      const selectedTags = [tags[0], tags[1], tags[2]]
+
+      console.log("Retrieved keywords:", selectedTags);
 
       // Set keyword state
-      setKeywords(tags, () => {
-        console.log("Updated keyword state:", keywords);
-      });
+      setKeywords(selectedTags);
+
+      const category = tags[3]
+
+      console.log("Retrieved category:", category);
+
+      // Set videoCategory state
+      setVideoCategory(category);
     });
   };
+
+
+
+
+  // Used to log keywords when the state is changed
+  useEffect(() => {
+    console.log("Updated keyword state:", keywords);
+  }, [keywords]);
+
+  // Used to log videoCategory when the state is changed
+  useEffect(() => {
+    console.log("Updated videoCategory state:", videoCategory);
+  }, [videoCategory]);
 
 
 
@@ -177,8 +217,7 @@ function App() {
       {
         console.log("time to update:", update);
         // Set update to true to allow the hook to progress
-        needsUpdate(update, () => {
-      });
+        needsUpdate(update);
       }
     });
   }
@@ -217,7 +256,7 @@ function App() {
         }
       });
     }
-    else if (videoCategory == 'videoGame')
+    else if (videoCategory == 'video game')
     {
       const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
       const questions = preferredQuestionsResult.preferredQuestions.videoGameQuestions;
@@ -270,10 +309,15 @@ function App() {
 
 
   const handleOptionsPageClick = () => {
+    console.log("Options pressed");
     if (chrome.runtime.openOptionsPage) {
+      console.log("Options if statement start");
       chrome.runtime.openOptionsPage();
+      console.log("Options if statement passed");
     } else {
+      console.log("Options else statement start");
       window.open(chrome.runtime.getURL("options.html"));
+      console.log("Options else statement passed");
     }
   };
 
