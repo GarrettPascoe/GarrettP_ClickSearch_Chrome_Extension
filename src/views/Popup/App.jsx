@@ -15,7 +15,8 @@ function App() {
   const [videoCategory, setVideoCategory] = useState(' ');
   const [keywords, setKeywords] = useState(['tag1', 'tag2', 'tag3']);
 
-  const [openAIResponse, setOpenAIResponse] = useState({ questionOne: null, questionTwo: null, questionThree: null, questionFour: null, questionFive: null,});
+  const [openAIResponse, setOpenAIResponse] = useState({ questionOne: null, questionTwo: null, questionThree: null, questionFour: null, questionFive: null});
+  const [selectedQuestions, setSelectedQuestions] = useState({ questionOne: '', questionTwo: '', questionThree: '', questionFour: '', questionFive: ''});
   const [userQuestions, setUserQuestions] = useState({
       movieQuestions: {
         questionOne: '',
@@ -77,39 +78,111 @@ function App() {
     }, 5000);
   });
 
-  useEffect(() => {
-      (async () => {
 
+  // Use effect that triggers when the update state is changed and attempts to retrieve the videoId of the current webpage
+  useEffect(() => {
         if (update == true)
         {
-          needsUpdate(false);
-          chrome.storage.local.set({ "needUpdate": false });
-
-
           // Retrieve videoId from chrome.storage.local
-          getVideoId();
-
-          // Retrieve videoCategory from chrome.storage.local
-          //getVideoCategory();
-
-          // Retrieve videoTitle from chrome.storage.local
-          getVideoTitle();
-
-          // Listener for messages from the background script was previously here
-        
-          // Retrieve keywords from chrome.storage.local
-          getKeywords();
-
-
-          // Implement type of questions and update Options
-          implementQuestions();
-
-
-        }
-
-      })();
+          getVideoId()
+        } // end if
     }, [update]);
+
   
+
+  // Use effect that triggers when videoId state is changed and calls the getVideoTitle method
+  useEffect(() => {
+    if(videoId != ' ')
+    {
+    console.log("Updated videoId state:", videoId);
+    needsUpdate(false)
+    chrome.storage.local.set({ "needUpdate": false })
+
+    // Retrieve videoCategory from chrome.storage.local
+    //getVideoCategory();
+
+    // Retrieve videoTitle from chrome.storage.local
+    getVideoTitle()
+    }
+  }, [videoId]);
+
+
+  // Use effect that triggers when videoTitle state is changed and calls the getKeywords method
+  useEffect(() => {
+    if(videoId != ' ')
+    {
+    console.log("Updated video title state:", videoTitle);
+
+    getKeywords()
+    }
+  }, [videoTitle]);
+
+
+  // Used to log videoCategory when the state is changed
+  useEffect(() => {
+    console.log("Updated videoCategory state:", videoCategory);
+  }, [videoCategory]);
+
+
+  // Use effect that triggers when keywords state is changed and calls the implementQuestions method
+  useEffect(() => {
+    if(videoId != ' ')
+    {
+    console.log("Updated keywords state:", keywords);
+
+    // Implement type of questions and update Options
+    getPrefferedQuestions()
+    }
+  }, [keywords]);
+
+
+
+  // Use effect that triggers when userQuestions state is changed
+  useEffect(() => {
+    if(videoId != ' ')
+      {
+    console.log("Implementing Questions");
+  
+    if (videoCategory == 'movie')
+      {
+        const questions = userQuestions.movieQuestions
+        setSelectedQuestions(questions);
+      }
+    else if (videoCategory == 'tv series')
+      {
+        const questions = userQuestions.showQuestions
+        setSelectedQuestions(questions);
+      }
+    else if (videoCategory == 'video game')
+      {
+        const questions = userQuestions.videoGameQuestions
+        setSelectedQuestions(questions);
+      }
+    else if (videoCategory == 'tech')
+      {
+        const questions = userQuestions.techQuestions
+        setSelectedQuestions(questions);
+      }
+    else
+      {
+        const questions = userQuestions.contentCreatorQuestions
+        setSelectedQuestions(questions);
+      }
+
+    }
+
+  }, [userQuestions]);
+
+
+  useEffect(() => {
+    if(videoId != ' ')
+      {
+    console.log("Selected Questions:", selectedQuestions);
+
+    //handleSubmit()
+      }
+  }, [selectedQuestions]);
+
 
   const getVideoId = () => {
 
@@ -120,28 +193,6 @@ function App() {
 
       // Set videoId state
       setVideoId(videoIdTemp);
-    });
-  };
-
-
-
-  // Used to log videoId when the state is changed
-  useEffect(() => {
-    console.log("Updated videoId state:", videoId);
-  }, [videoId]);
-
-
-
-  const getVideoCategory = () => {
-
-    chrome.storage.local.get(["videoCategory"], (result) => {
-      const category = result.videoCategory;
-      console.log("Retrieved category:", category);
-
-      // Set videoCategory state
-      setVideoCategory(category, () => {
-        console.log("Updated videoCategory state:", videoCategory);
-      });
     });
   };
 
@@ -157,16 +208,6 @@ function App() {
       setVideoTitle(title);
     });
   };
-
-
-
-
-  // Used to log videoTitle when the state is changed
-  useEffect(() => {
-    console.log("Updated videoTitle state:", videoTitle);
-  }, [videoTitle]);
-
-
 
 
   const getKeywords = () => {
@@ -195,37 +236,24 @@ function App() {
   };
 
 
+  const getPrefferedQuestions = () => {
 
+    // Retrieve prefferedQuestions from chrome.storage.local
+    chrome.storage.local.get(["preferredQuestions"], (result) => {
+      const Questions = result.preferredQuestions;
+      console.log("Retrieved Preferred Questions:", Questions);
 
-  // Used to log keywords when the state is changed
-  useEffect(() => {
-    console.log("Updated keyword state:", keywords);
-  }, [keywords]);
-
-  // Used to log videoCategory when the state is changed
-  useEffect(() => {
-    console.log("Updated videoCategory state:", videoCategory);
-  }, [videoCategory]);
-
-
-
-  const checkUpdate = () => {
-    // Retrieve update status from chrome.storage.local
-    chrome.storage.local.get(["needUpdate"], (result) => {
-      const update = result.needUpdate;
-      if (update == true)
-      {
-        console.log("time to update:", update);
-        // Set update to true to allow the hook to progress
-        needsUpdate(update);
-      }
+      // Set videoTitle state
+      setUserQuestions(Questions);
     });
-  }
+  };
 
-
+/*
   const implementQuestions = async () => {
 
-    if (videoCategory == 'movie') {
+    if (videoCategory == 'movie')
+    {
+      console.log("Retrieved questions for movies");
       const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
       const questions = preferredQuestionsResult.preferredQuestions.movieQuestions;
       console.log("Retrieved questions:", questions);
@@ -242,6 +270,7 @@ function App() {
     }
     else if (videoCategory == 'tv series')
     {
+      console.log("Retrieved questions for tv series");
       const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
       const questions = preferredQuestionsResult.preferredQuestions.showQuestions;
       console.log("Retrieved questions:", questions);
@@ -258,6 +287,7 @@ function App() {
     }
     else if (videoCategory == 'video game')
     {
+      console.log("Retrieved questions for video games");
       const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
       const questions = preferredQuestionsResult.preferredQuestions.videoGameQuestions;
       console.log("Retrieved questions:", questions);
@@ -274,6 +304,7 @@ function App() {
     }
     else if (videoCategory == 'tech')
     {
+      console.log("Retrieved questions for tech");
       const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
       const questions = preferredQuestionsResult.preferredQuestions.techQuestions;
       console.log("Retrieved questions:", questions);
@@ -290,6 +321,7 @@ function App() {
     }
     else
     {
+      console.log("Retrieved questions for content creator");
       const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
       const questions = preferredQuestionsResult.preferredQuestions.contentCreatorQuestions;
       console.log("Retrieved questions:", questions);
@@ -305,7 +337,7 @@ function App() {
       });
     }
   }
-
+*/
 
 
   const handleOptionsPageClick = () => {
@@ -323,13 +355,17 @@ function App() {
 
 
   const handleSubmit = async () => {
+
     const {
       questionOne,
       questionTwo,
       questionThree,
       questionFour,
       questionFive,
-    } = userQuestions;
+    } = selectedQuestions;
+
+    console.log("Question #1: ", questionOne);
+
     const prompt = `Video title: ${videoTitle}, key topics: ${keywords[0]},  ${keywords[1]},  ${keywords[2]}, Questions: (1) ${questionOne} (2) ${questionTwo} (3) ${questionThree} (4) ${questionFour} (5) ${questionFive}`;
     let completion
     try {
@@ -349,105 +385,93 @@ function App() {
     isLoading(false);
   };
 
-  /*
-  // Listen for messages from the background script
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.data) {
-    // Set videoData state when a message is received
 
-    // Set videoData state
-    setVideoData(message.data, () => {
-      console.log("Updated videoData state:", videoData);
-    }),
-
-    // Set videoTitle state
-    setVideoTitle(message.data.items[0].snippet.title, () => {
-      console.log("Updated videoTitle state:", videoTitle);
-    })
+  const checkUpdate = () => {
+    // Retrieve update status from chrome.storage.local
+    chrome.storage.local.get(["needUpdate"], (result) => {
+      const update = result.needUpdate;
+      if (update == true)
+      {
+        console.log("time to update:", update);
+        // Set update to true to allow the hook to progress
+        needsUpdate(false);
+        needsUpdate(update);
+      }
+    });
   }
-  else if(message.keyTag) {
-  // Set keywords state
-  setVideoTitle(message.keyTag, () => {
-    console.log("Updated keywords state:", keywords);
-  })
-  }
-  });
-  */
 
 
   return (
     <>
     <div className="popup">
-      <header className="popup-header">
-        <h2 className="popup-title">Click Search - Key Topics:</h2>
-        <span className="tag-item">
-          {keywords[0]}
-        </span>
-        <span className="tag-item">
-          {keywords[1]}
-        </span>
-        <span className="tag-item">
-          {keywords[2]}
-        </span>
-        <button
-          onClick={handleOptionsPageClick}
-          className="options-page-button"
-        >
-          <img src="../logo193.png" alt="logo" class="logo"></img>
-        </button>
-      </header>
-      {!loading ? (
-
-        <div className="results">
-          <Swiper
-            modules={[Autoplay, Navigation, Pagination]}
-            spaceBetween={50}
-            slidesPerView={1}
-            loop={true}
-            navigation
-            autoplay={{
-              delay: 2500,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: true,
-            }}
-            pagination={{ clickable: true }}
+        <header className="popup-header">
+          <h2 className="popup-title">Click Search - Key Topics:</h2>
+          <span className="tag-item">{keywords[0]}</span>
+          <span className="tag-item">{keywords[1]}</span>
+          <span className="tag-item">{keywords[2]}</span>
+          <button
+            onClick={handleOptionsPageClick}
+            className="options-page-button"
           >
-            <SwiperSlide>
-              <ResultsCard
-                title={userQuestions.questionOne}
-                text={openAIResponse.questionOne}
-              /></SwiperSlide>
-            <SwiperSlide>
-              <ResultsCard
-                title={userQuestions.questionTwo}
-                text={openAIResponse.questionTwo}
-              /></SwiperSlide>
-            <SwiperSlide>
-              <ResultsCard
-                title={userQuestions.questionThree}
-                text={openAIResponse.questionThree}
-              /></SwiperSlide>
-            <SwiperSlide>
-              <ResultsCard
-                title={userQuestions.questionFour}
-                text={openAIResponse.questionFour}
-              /></SwiperSlide>
-            <SwiperSlide>
-              <ResultsCard
-                title={userQuestions.questionFive}
-                text={openAIResponse.questionFive}
-              /></SwiperSlide>
-          </Swiper>
-        </div>
-      ) : (
-        <div class="loading">
-          <div class="loading-dot"></div>
-          <div class="loading-dot"></div>
-          <div class="loading-dot"></div>
-          <div class="loading-dot"></div>
-        </div>
-      )}
-    </div>
+            <img src="../../../logo193.png" alt="logo" class="logo"></img>
+          </button>
+        </header>
+        {!loading ? (
+          <div className="results">
+            <Swiper
+              modules={[Autoplay, Navigation, Pagination]}
+              spaceBetween={50}
+              slidesPerView={1}
+              loop={true}
+              navigation
+              autoplay={{
+                delay: 2500,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }}
+              pagination={{ clickable: true }}
+            >
+              <SwiperSlide>
+                <ResultsCard
+                  title={userQuestions.techQuestions.questionOne}
+                  text={openAIResponse.one}
+                />
+              </SwiperSlide>
+              <SwiperSlide>
+                <ResultsCard
+                  title={userQuestions.techQuestions.questionTwo}
+                  text={openAIResponse.two}
+                />
+              </SwiperSlide>
+              <SwiperSlide>
+                <ResultsCard
+                  title={userQuestions.techQuestions.questionThree}
+                  text={openAIResponse.three}
+                />
+              </SwiperSlide>
+              <SwiperSlide>
+                <ResultsCard
+                  title={userQuestions.techQuestions.questionFour}
+                  text={openAIResponse.four}
+                />
+              </SwiperSlide>
+              <SwiperSlide>
+                <ResultsCard
+                  title={userQuestions.techQuestions.questionFive}
+                  text={openAIResponse.five}
+                />
+              </SwiperSlide>
+            </Swiper>
+          </div>
+        ) : (
+          <div class="loading">
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+          </div>
+        )}
+      </div>
     </>
   );
 }

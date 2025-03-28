@@ -53,9 +53,9 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
             console.log("Response from tagAlgorithm", keyTag);
             chrome.storage.local.set({ "keywords": keyTag});
             chrome.storage.local.set({ "videoTitle": result.apiResponse[0].snippet.title})
-            chrome.storage.local.set({ "needUpdate": true})
           })
         })
+        .then(chrome.storage.local.set({ "needUpdate": true}))
 
         .catch(error => {
           console.error("Error fetching data:", error);

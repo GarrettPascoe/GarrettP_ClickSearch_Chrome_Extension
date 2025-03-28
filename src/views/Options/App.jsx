@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import QuestionInputForm from "../components/QuestionInputForm";
 
-
 // TODO - Need to create react componenets for various parts of this page
 // place component files into src/components and import them. reference the resultsCard component for component setup
 // store user settings to chrome.storage
@@ -30,20 +29,23 @@ function App() {
       questionTwo: "Who directed and produced this movie?",
       questionThree: "Was this a box office success?",
       questionFour: "What did the audience think of this movie?",
-      questionFive: "Is the movie part of a series? If yes, what are the other movies?",
+      questionFive:
+        "Is the movie part of a series? If yes, what are the other movies?",
     },
     videoGameQuestions: {
       questionOne: "When did this video game release?",
       questionTwo: "Who developed this game?",
       questionThree: "How much does this game cost?",
-      questionFour: "Does the game have microtransactions? If yes, are they lootboxes?",
+      questionFour:
+        "Does the game have microtransactions? If yes, are they lootboxes?",
       questionFive: "Is this game suitable for children?",
     },
     techQuestions: {
       questionOne: "What is the best way to learn this technology?",
       questionTwo: "What is this technology most often used for?",
       questionThree: "Where can I learn more about this technology?",
-      questionFour: "What are good YouTube channels with videos related to this technology?",
+      questionFour:
+        "What are good YouTube channels with videos related to this technology?",
       questionFive: "Is this a difficult technology to learn?",
     },
     showQuestions: {
@@ -55,7 +57,8 @@ function App() {
     },
   };
 
-  const [preferredQuestions, setPreferredQuestions] = useState(defaultQuestions);
+  const [preferredQuestions, setPreferredQuestions] =
+    useState(defaultQuestions);
 
   useEffect(() => {
     // // Fetch data from storage and set preferredQuestions state
@@ -63,9 +66,8 @@ function App() {
       const storedQuestions = result.preferredQuestions || null;
       console.log(result);
       if (storedQuestions) {
-        setPreferredQuestions(storedQuestions);
-      }
-      else {
+        setPreferredQuestions(defaultQuestions);
+      } else {
         setPreferredQuestions(defaultQuestions);
       }
     });
@@ -78,19 +80,19 @@ function App() {
         const result = await new Promise((resolve) => {
           chrome.storage.local.get(["theme"], resolve);
         });
-  
+
         const storedTheme = result.theme || "dark"; // Default to "dark" if theme is not stored
-  
+
         setTheme(storedTheme);
       } catch (error) {
         console.error("Error fetching theme preference:", error);
         // Handle the error as needed (e.g., use a default theme)
       }
     };
-  
+
     fetchData();
   }, []);
-  
+
   const handleInputChange = (section, fieldName, event) => {
     // Update the state with the new value
     setPreferredQuestions((prevState) => ({
@@ -106,54 +108,68 @@ function App() {
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-  
+
     // Save the theme preference to chrome.storage.local
     chrome.storage.local.set({ theme: newTheme }, () => {
       console.log("Theme preference saved:", newTheme);
     });
   };
-  
 
-//new saveQuestions, checks if null then populates with default questions if null
-const saveQuestions = () => {
-  // Check if any questions are null or empty
-  const isAnyQuestionEmpty = Object.values(preferredQuestions).some(
-    (questions) => Object.values(questions).some((question) => !question.trim())
-  );
+  //new saveQuestions, checks if null then populates with default questions if null
+  const saveQuestions = () => {
+    // Check if any questions are null or empty
+    const isAnyQuestionEmpty = Object.values(preferredQuestions).some(
+      (questions) =>
+        Object.values(questions).some((question) => !question.trim())
+    );
 
-  if (isAnyQuestionEmpty) {
-    // If any question is empty, replace with default questions
-    const questionsWithDefaults = Object.keys(preferredQuestions).reduce((acc, section) => {
-      acc[section] = Object.fromEntries(
-        Object.keys(preferredQuestions[section]).map((key) => [key, preferredQuestions[section][key] || defaultQuestions[section][key]])
+    if (isAnyQuestionEmpty) {
+      // If any question is empty, replace with default questions
+      const questionsWithDefaults = Object.keys(preferredQuestions).reduce(
+        (acc, section) => {
+          acc[section] = Object.fromEntries(
+            Object.keys(preferredQuestions[section]).map((key) => [
+              key,
+              preferredQuestions[section][key] ||
+                defaultQuestions[section][key],
+            ])
+          );
+          return acc;
+        },
+        {}
       );
-      return acc;
-    }, {});
 
-    setPreferredQuestions(questionsWithDefaults);
-    console.log("Some questions were empty. Replaced with default questions:", questionsWithDefaults);
+      setPreferredQuestions(questionsWithDefaults);
+      console.log(
+        "Some questions were empty. Replaced with default questions:",
+        questionsWithDefaults
+      );
 
-    // Save preferred questions with defaults to chrome.storage.local
-    chrome.storage.local.set({ preferredQuestions: questionsWithDefaults }, () => {
-      console.log("Preferred questions set:", questionsWithDefaults);
-    });
-  } else {
-    // Save preferred questions to chrome.storage.local
-    chrome.storage.local.set({ preferredQuestions: preferredQuestions }, () => {
-      console.log("Preferred questions set:", preferredQuestions);
-    });
-  }
+      // Save preferred questions with defaults to chrome.storage.local
+      chrome.storage.local.set(
+        { preferredQuestions: questionsWithDefaults },
+        () => {
+          console.log("Preferred questions set:", questionsWithDefaults);
+        }
+      );
+    } else {
+      // Save preferred questions to chrome.storage.local
+      chrome.storage.local.set(
+        { preferredQuestions: preferredQuestions },
+        () => {
+          console.log("Preferred questions set:", preferredQuestions);
+        }
+      );
+    }
 
-  setShowSaved(true);
-  setTimeout(() => {
-    // Set showSaved back to false after 3 seconds
-    setShowSaved(false);
-  }, 3000);
-};
-  
+    setShowSaved(true);
+    setTimeout(() => {
+      // Set showSaved back to false after 3 seconds
+      setShowSaved(false);
+    }, 3000);
+  };
 
-
-//clearQuestions clears entries
+  //clearQuestions clears entries
   const clearQuestions = (section) => {
     setPreferredQuestions((prevState) => ({
       ...prevState,
@@ -186,20 +202,42 @@ const saveQuestions = () => {
           <div className="category-select-wrapper">
             <h3 className="category-select-h3">Select a Category:</h3>
             <br />
-            <span onClick={() => showForm("contentCreator")} className={`filter-item ${formToShow === 'contentCreator' ? 'active' : ''}`}>
+            <span
+              onClick={() => showForm("contentCreator")}
+              className={`filter-item ${
+                formToShow === "contentCreator" ? "active" : ""
+              }`}
+            >
               Content Creator
             </span>
             <span
-              onClick={() => showForm("videoGames")} className={`filter-item ${formToShow === 'videoGames' ? 'active' : ''}`}>
+              onClick={() => showForm("videoGames")}
+              className={`filter-item ${
+                formToShow === "videoGames" ? "active" : ""
+              }`}
+            >
               Video Games
             </span>
-            <span onClick={() => showForm("movies")} className={`filter-item ${formToShow === 'movies' ? 'active' : ''}`}>
+            <span
+              onClick={() => showForm("movies")}
+              className={`filter-item ${
+                formToShow === "movies" ? "active" : ""
+              }`}
+            >
               Movies
             </span>
-            <span onClick={() => showForm("tech")} className={`filter-item ${formToShow === 'tech' ? 'active' : ''}`}>
+            <span
+              onClick={() => showForm("tech")}
+              className={`filter-item ${formToShow === "tech" ? "active" : ""}`}
+            >
               Technology
             </span>
-            <span onClick={() => showForm("shows")} className={`filter-item ${formToShow === 'shows' ? 'active' : ''}`}>
+            <span
+              onClick={() => showForm("shows")}
+              className={`filter-item ${
+                formToShow === "shows" ? "active" : ""
+              }`}
+            >
               TV Shows/Anime
             </span>
           </div>
@@ -258,6 +296,6 @@ const saveQuestions = () => {
       </section>
     </div>
   );
-};
+}
 
 export default App;
