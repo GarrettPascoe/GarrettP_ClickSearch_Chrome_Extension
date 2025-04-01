@@ -15,8 +15,9 @@ function App() {
   const [videoCategory, setVideoCategory] = useState(' ');
   const [keywords, setKeywords] = useState(['tag1', 'tag2', 'tag3']);
 
-  const [openAIResponse, setOpenAIResponse] = useState({ questionOne: null, questionTwo: null, questionThree: null, questionFour: null, questionFive: null});
+  const [openAIResponse, setOpenAIResponse] = useState({ one: null, two: null, three: null, four: null, five: null, videoId: null});
   const [selectedQuestions, setSelectedQuestions] = useState({ questionOne: '', questionTwo: '', questionThree: '', questionFour: '', questionFive: ''});
+  const [selectedKeyword, setSelectedKeyword] = useState(' ');
   const [userQuestions, setUserQuestions] = useState({
       movieQuestions: {
         questionOne: '',
@@ -55,7 +56,7 @@ function App() {
       },
   });
 
-  const [prompt, setPrompt] = useState();
+  //const [prompt, setPrompt] = useState();
   const [storedOpenaiResponse, setStoredOpenAIResponse] = useState();
 
   const [loading, isLoading] = useState(true);
@@ -66,7 +67,6 @@ function App() {
   useEffect(() => {
     const keydata = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-
     chrome.storage.local.set({ "key": keydata });
   }, []);
 
@@ -75,8 +75,9 @@ function App() {
     setInterval(() => {
         // Check if an update is needed
         checkUpdate();
-    }, 5000);
+    }, 500);
   });
+  
 
 
   // Use effect that triggers when the update state is changed and attempts to retrieve the videoId of the current webpage
@@ -111,7 +112,7 @@ function App() {
   useEffect(() => {
     if(videoId != ' ')
     {
-    console.log("Updated video title state:", videoTitle);
+    //console.log("Updated video title state:", videoTitle);
 
     getKeywords()
     }
@@ -120,7 +121,7 @@ function App() {
 
   // Used to log videoCategory when the state is changed
   useEffect(() => {
-    console.log("Updated videoCategory state:", videoCategory);
+    //console.log("Updated videoCategory state:", videoCategory);
   }, [videoCategory]);
 
 
@@ -128,7 +129,7 @@ function App() {
   useEffect(() => {
     if(videoId != ' ')
     {
-    console.log("Updated keywords state:", keywords);
+    //console.log("Updated keywords state:", keywords);
 
     // Implement type of questions and update Options
     getPrefferedQuestions()
@@ -177,11 +178,21 @@ function App() {
   useEffect(() => {
     if(videoId != ' ')
       {
-    console.log("Selected Questions:", selectedQuestions);
+    //console.log("Selected Questions:", selectedQuestions);
 
     //handleSubmit()
       }
   }, [selectedQuestions]);
+
+
+  useEffect(() => {
+    if(videoId != ' ' && keywords[0] != 'tag1')
+      {
+      //console.log("Selected keyword has changed");
+
+      handleSubmit()
+      }
+  }, [selectedKeyword]);
 
 
   const getVideoId = () => {
@@ -189,7 +200,7 @@ function App() {
     // Retrieve videoId from chrome.storage.local
     chrome.storage.local.get(["videoId"], (result) => {
       const videoIdTemp = result.videoId;
-      console.log("Retrieved video ID:", videoIdTemp);
+      //console.log("Retrieved video ID:", videoIdTemp);
 
       // Set videoId state
       setVideoId(videoIdTemp);
@@ -202,7 +213,7 @@ function App() {
     // Retrieve videoTitle from chrome.storage.local
     chrome.storage.local.get(["videoTitle"], (result) => {
       const title = result.videoTitle;
-      console.log("Retrieved title:", title);
+      //console.log("Retrieved title:", title);
 
       // Set videoTitle state
       setVideoTitle(title);
@@ -241,103 +252,12 @@ function App() {
     // Retrieve prefferedQuestions from chrome.storage.local
     chrome.storage.local.get(["preferredQuestions"], (result) => {
       const Questions = result.preferredQuestions;
-      console.log("Retrieved Preferred Questions:", Questions);
+      //console.log("Retrieved Preferred Questions:", Questions);
 
       // Set videoTitle state
       setUserQuestions(Questions);
     });
   };
-
-/*
-  const implementQuestions = async () => {
-
-    if (videoCategory == 'movie')
-    {
-      console.log("Retrieved questions for movies");
-      const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
-      const questions = preferredQuestionsResult.preferredQuestions.movieQuestions;
-      console.log("Retrieved questions:", questions);
-      setUserQuestions(questions, () => {
-        console.log("Updated questions state:", userQuestions);
-        if (storedOpenaiResponse.videoId !== videoId){
-          handleSubmit();
-        }
-        else {
-          setOpenAIResponse(storedOpenaiResponse)
-          isLoading(false);
-        }
-      });
-    }
-    else if (videoCategory == 'tv series')
-    {
-      console.log("Retrieved questions for tv series");
-      const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
-      const questions = preferredQuestionsResult.preferredQuestions.showQuestions;
-      console.log("Retrieved questions:", questions);
-      setUserQuestions(questions, () => {
-        console.log("Updated questions state:", userQuestions);
-        if (storedOpenaiResponse.videoId !== videoId){
-          handleSubmit();
-        }
-        else {
-          setOpenAIResponse(storedOpenaiResponse)
-          isLoading(false);
-        }
-      });
-    }
-    else if (videoCategory == 'video game')
-    {
-      console.log("Retrieved questions for video games");
-      const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
-      const questions = preferredQuestionsResult.preferredQuestions.videoGameQuestions;
-      console.log("Retrieved questions:", questions);
-      setUserQuestions(questions, () => {
-        console.log("Updated questions state:", userQuestions);
-        if (storedOpenaiResponse.videoId !== videoId){
-          handleSubmit();
-        }
-        else {
-          setOpenAIResponse(storedOpenaiResponse)
-          isLoading(false);
-        }
-      });
-    }
-    else if (videoCategory == 'tech')
-    {
-      console.log("Retrieved questions for tech");
-      const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
-      const questions = preferredQuestionsResult.preferredQuestions.techQuestions;
-      console.log("Retrieved questions:", questions);
-      setUserQuestions(questions, () => {
-        console.log("Updated questions state:", userQuestions);
-        if (storedOpenaiResponse.videoId !== videoId){
-          handleSubmit();
-        }
-        else {
-          setOpenAIResponse(storedOpenaiResponse)
-          isLoading(false);
-        }
-      });
-    }
-    else
-    {
-      console.log("Retrieved questions for content creator");
-      const preferredQuestionsResult = await chrome.storage.local.get(["preferredQuestions"]);
-      const questions = preferredQuestionsResult.preferredQuestions.contentCreatorQuestions;
-      console.log("Retrieved questions:", questions);
-      setUserQuestions(questions, () => {
-        console.log("Updated questions state:", userQuestions);
-        if (storedOpenaiResponse.videoId !== videoId){
-          handleSubmit();
-        }
-        else {
-          setOpenAIResponse(storedOpenaiResponse)
-          isLoading(false);
-        }
-      });
-    }
-  }
-*/
 
 
   const handleOptionsPageClick = () => {
@@ -354,6 +274,31 @@ function App() {
   };
 
 
+  const handleButton1 = () => {
+    const keyword = keywords[0];
+    console.log("Button #1 pressed:", keyword);
+
+    // Set selected keyword to keyword[0]
+    setSelectedKeyword(keyword);
+  };
+
+  const handleButton2 = () => {
+    const keyword = keywords[1];
+    console.log("Button #2 pressed:", keyword);
+
+    // Set selected keyword to keyword[0]
+    setSelectedKeyword(keyword);
+  };
+
+  const handleButton3 = () => {
+    const keyword = keywords[2];
+    console.log("Button #3 pressed:", keyword);
+
+    // Set selected keyword to keyword[0]
+    setSelectedKeyword(keyword);
+  };
+
+
   const handleSubmit = async () => {
 
     const {
@@ -364,24 +309,24 @@ function App() {
       questionFive,
     } = selectedQuestions;
 
-    console.log("Question #1: ", questionOne);
-
-    const prompt = `Video title: ${videoTitle}, key topics: ${keywords[0]},  ${keywords[1]},  ${keywords[2]}, Questions: (1) ${questionOne} (2) ${questionTwo} (3) ${questionThree} (4) ${questionFour} (5) ${questionFive}`;
+    const prompt = `Video title: ${videoTitle}, key topic: ${selectedKeyword}, Questions: (1) ${questionOne} (2) ${questionTwo} (3) ${questionThree} (4) ${questionFour} (5) ${questionFive}`;
+    console.log("Prompt: ", prompt);
     let completion
     try {
       completion = await generateChatCompletion(prompt);
-      setOpenAIResponse({completion})
+      console.log("Completion Value: ", completion)
+      setOpenAIResponse(completion)
     } catch (error) {
       console.error('Error:', error);
     }
     completion.videoId = videoId;
     chrome.storage.local.set({ openaiResponse: completion }, () => {
-      console.log('openai answers set:', completion);
+      //console.log('openai answers set:', completion);
     });
     
-    console.log(userQuestions)
-    console.log(prompt);
-    console.log(completion)
+    //console.log(userQuestions)
+    //console.log(prompt);
+    console.log("Openai Response: ", openAIResponse)
     isLoading(false);
   };
 
@@ -403,18 +348,40 @@ function App() {
 
   return (
     <>
-    <div className="popup">
+    <div className="popup"
+    style={{
+      backgroundColor: "#cccccc",
+      backgroundImage:
+        "linear-gradient(rgb(63, 67, 87), rgb(82, 128, 199), rgb(63, 67, 87))",
+    }}>
         <header className="popup-header">
-          <h2 className="popup-title">Click Search - Key Topics:</h2>
-          <span className="tag-item">{keywords[0]}</span>
-          <span className="tag-item">{keywords[1]}</span>
-          <span className="tag-item">{keywords[2]}</span>
+          <div className="row">
+          <h2 className="popup-title">Click Search:</h2>
+          </div>
+          <div className="row" style={{height: "10px"}}></div>
+          <div className="row">
+          <button onClick={handleButton1} className="tag-item" style={{width: "150px"}}>
+            {keywords[0]}</button>
+          </div>
+          <div className="row" style={{height: "10px"}}></div>
+          <div className="row">
+          <button onClick={handleButton2} className="tag-item" style={{width: "150px"}}>
+            {keywords[1]}</button>
+          </div>
+          <div className="row" style={{height: "10px"}}></div>
+          <div className="row">
+          <button onClick={handleButton3} className="tag-item" style={{width: "150px"}}>
+            {keywords[2]}</button>
+          </div>
+          <div className="row" style={{height: "10px"}}></div>
+          <div className="row">
           <button
             onClick={handleOptionsPageClick}
             className="options-page-button"
           >
             <img src="../../../logo193.png" alt="logo" class="logo"></img>
           </button>
+          </div>
         </header>
         {!loading ? (
           <div className="results">
@@ -422,10 +389,11 @@ function App() {
               modules={[Autoplay, Navigation, Pagination]}
               spaceBetween={50}
               slidesPerView={1}
+              centeredSlides={true}
               loop={true}
               navigation
               autoplay={{
-                delay: 2500,
+                delay: 5000,
                 disableOnInteraction: false,
                 pauseOnMouseEnter: true,
               }}
@@ -433,31 +401,31 @@ function App() {
             >
               <SwiperSlide>
                 <ResultsCard
-                  title={userQuestions.techQuestions.questionOne}
+                  title={selectedQuestions.questionOne}
                   text={openAIResponse.one}
                 />
               </SwiperSlide>
               <SwiperSlide>
                 <ResultsCard
-                  title={userQuestions.techQuestions.questionTwo}
+                  title={selectedQuestions.questionTwo}
                   text={openAIResponse.two}
                 />
               </SwiperSlide>
               <SwiperSlide>
                 <ResultsCard
-                  title={userQuestions.techQuestions.questionThree}
+                  title={selectedQuestions.questionThree}
                   text={openAIResponse.three}
                 />
               </SwiperSlide>
               <SwiperSlide>
                 <ResultsCard
-                  title={userQuestions.techQuestions.questionFour}
+                  title={selectedQuestions.questionFour}
                   text={openAIResponse.four}
                 />
               </SwiperSlide>
               <SwiperSlide>
                 <ResultsCard
-                  title={userQuestions.techQuestions.questionFive}
+                  title={selectedQuestions.questionFive}
                   text={openAIResponse.five}
                 />
               </SwiperSlide>
