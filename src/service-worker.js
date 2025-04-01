@@ -17,6 +17,56 @@
 //  Only update popup use state when videoId is changed
 
 
+// Listener that triggers on install and sets the default questions before they are accessed
+chrome.runtime.onInstalled.addListener(() => {
+  console.log("Installed Listener");
+  const defaultQuestions = {
+    contentCreatorQuestions: {
+      questionOne: "How long have they been a content creator?",
+      questionTwo: "Do they have any other channels?",
+      questionThree: "Do they stream?",
+      questionFour: "Do they have social media handles?",
+      questionFive: "What topics do they typcially make videos on?",
+    },
+    movieQuestions: {
+      questionOne: "When did this movie come out?",
+      questionTwo: "Who directed and produced this movie?",
+      questionThree: "Was this a box office success?",
+      questionFour: "What did the audience think of this movie?",
+      questionFive:
+        "Is the movie part of a series? If yes, what are the other movies?",
+    },
+    videoGameQuestions: {
+      questionOne: "When did this video game release?",
+      questionTwo: "Who developed this game?",
+      questionThree: "How much does this game cost?",
+      questionFour:
+        "Does the game have microtransactions? If yes, are they lootboxes?",
+      questionFive: "Is this game suitable for children?",
+    },
+    techQuestions: {
+      questionOne: "What is the best way to learn this technology?",
+      questionTwo: "What is this technology most often used for?",
+      questionThree: "Where can I learn more about this technology?",
+      questionFour:
+        "What are good YouTube channels with videos related to this technology?",
+      questionFive: "Is this a difficult technology to learn?",
+    },
+    showQuestions: {
+      questionOne: "When did this episode air?",
+      questionTwo: "How many seasons and episodes are there?",
+      questionThree: "What studio created the show?",
+      questionFour: "Where can this show be watched?",
+      questionFive: "How did the audience respond to this show?",
+    },
+  };
+
+  console.log("Installed Listener");
+
+  chrome.storage.local.set({ "preferredQuestions": defaultQuestions })
+})
+
+
 // Listener that triggers on history change in Chrome
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
   console.log("History has changed");

@@ -63,12 +63,34 @@ function App() {
 
   const [update, needsUpdate] = useState(false);
 
+
+  // Popup States
+
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  const openPopup = () => {
+    setIsPopupOpen(true);
+  };
+
+  const closePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+
+
+
+  // Initial useEffect on open
   // Store API KEY in chrome storage on mount to be accessed by the etension service worker
   useEffect(() => {
     const keydata = import.meta.env.VITE_YOUTUBE_API_KEY;
 
     chrome.storage.local.set({ "key": keydata });
+
+    getVideoId()
   }, []);
+
+
+  // useEffects that control when calls are made by waiting for states to change:
 
   // useEffect to check if the video Id needs to be updated
   useEffect(() => {
@@ -77,8 +99,6 @@ function App() {
         checkUpdate();
     }, 500);
   });
-  
-
 
   // Use effect that triggers when the update state is changed and attempts to retrieve the videoId of the current webpage
   useEffect(() => {
@@ -89,8 +109,6 @@ function App() {
         } // end if
     }, [update]);
 
-  
-
   // Use effect that triggers when videoId state is changed and calls the getVideoTitle method
   useEffect(() => {
     if(videoId != ' ')
@@ -99,14 +117,10 @@ function App() {
     needsUpdate(false)
     chrome.storage.local.set({ "needUpdate": false })
 
-    // Retrieve videoCategory from chrome.storage.local
-    //getVideoCategory();
-
     // Retrieve videoTitle from chrome.storage.local
     getVideoTitle()
     }
   }, [videoId]);
-
 
   // Use effect that triggers when videoTitle state is changed and calls the getKeywords method
   useEffect(() => {
@@ -118,12 +132,10 @@ function App() {
     }
   }, [videoTitle]);
 
-
   // Used to log videoCategory when the state is changed
   useEffect(() => {
     //console.log("Updated videoCategory state:", videoCategory);
   }, [videoCategory]);
-
 
   // Use effect that triggers when keywords state is changed and calls the implementQuestions method
   useEffect(() => {
@@ -135,8 +147,6 @@ function App() {
     getPrefferedQuestions()
     }
   }, [keywords]);
-
-
 
   // Use effect that triggers when userQuestions state is changed
   useEffect(() => {
@@ -174,17 +184,6 @@ function App() {
 
   }, [userQuestions]);
 
-
-  useEffect(() => {
-    if(videoId != ' ')
-      {
-    //console.log("Selected Questions:", selectedQuestions);
-
-    //handleSubmit()
-      }
-  }, [selectedQuestions]);
-
-
   useEffect(() => {
     if(videoId != ' ' && keywords[0] != 'tag1')
       {
@@ -193,6 +192,9 @@ function App() {
       handleSubmit()
       }
   }, [selectedKeyword]);
+
+
+  // End of useEffect hooks
 
 
   const getVideoId = () => {
