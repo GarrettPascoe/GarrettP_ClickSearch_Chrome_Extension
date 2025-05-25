@@ -357,8 +357,9 @@ function App() {
         "linear-gradient(rgb(63, 67, 87), rgb(82, 128, 199), rgb(63, 67, 87))",
     }}>
         <header className="popup-header">
+        <div className="row" style={{height: "15px"}}></div>
           <div className="row">
-          <h2 className="popup-title">Click Search:</h2>
+          <h1 className="popup-title" style={{color: "white"}}>Click Search:</h1>
           </div>
           <div className="row" style={{height: "10px"}}></div>
           <div className="row">
